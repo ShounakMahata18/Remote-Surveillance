@@ -7,6 +7,6 @@
 #define CAMERA_WS_PORT 3000
 #define CAMERA_WS_PATH "/ws"
 
-// Leave empty for local ws:// development. For wss://, pin the relay certificate
-// fingerprint and set the matching secure port (usually 443).
-#define CAMERA_WS_TLS_FINGERPRINT ""
+// Leave empty for local ws:// development. For Render, paste the PEM root CA
+// certificate here and use port 443. Do not use a leaf fingerprint.
+#define CAMERA_WS_CA_CERT ""

@@ -277,6 +277,7 @@ function onConnection(socket) {
         socket.authenticatedAt = Date.now();
         socket.lastFrameAt = socket.authenticatedAt;
         clearTimeout(authTimeout);
+        console.log("Camera publisher authenticated.");
         sendJson(socket, { type: "AUTH_OK", role: "publisher" });
         synchronizePublisher(socket);
         socket.timeSyncTimer = setInterval(
@@ -313,6 +314,9 @@ function onConnection(socket) {
         return;
       }
 
+      if (auth.type === "AUTH_PUBLISHER") {
+        console.warn("Camera publisher authentication rejected; check CAMERA_SECRET.");
+      }
       socket.close(4001, "Invalid credentials");
       return;
     }

@@ -17,8 +17,8 @@
 #ifndef CAMERA_WS_PATH
 #define CAMERA_WS_PATH "/ws"
 #endif
-#ifndef CAMERA_WS_TLS_FINGERPRINT
-#define CAMERA_WS_TLS_FINGERPRINT ""
+#ifndef CAMERA_WS_CA_CERT
+#define CAMERA_WS_CA_CERT ""
 #endif
 
 // AI Thinker ESP32-CAM pin mapping.
@@ -209,7 +209,12 @@ void onWebSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       break;
     }
     case WStype_ERROR:
-      Serial.println("WebSocket transport error.");
+      Serial.printf("WebSocket transport error (Wi-Fi status %d).\n", WiFi.status());
+      if (payload != nullptr && length > 0) {
+        Serial.print("WebSocket error data: ");
+        Serial.write(payload, length);
+        Serial.println();
+      }
       break;
     default:
       break;
@@ -221,15 +226,20 @@ void connectWebSocket() {
   webSocket.setReconnectInterval(5000);
   webSocket.enableHeartbeat(15000, 3000, 2);
   if (useTls) {
-    webSocket.beginSSL(
+    webSocket.beginSslWithCA(
         CAMERA_WS_HOST,
         CAMERA_WS_PORT,
         CAMERA_WS_PATH,
-        CAMERA_WS_TLS_FINGERPRINT
+        CAMERA_WS_CA_CERT
     );
   } else {
     webSocket.begin(CAMERA_WS_HOST, CAMERA_WS_PORT, CAMERA_WS_PATH);
   }
+  Serial.printf("Connecting to %s://%s:%u%s\n",
+                useTls ? "wss" : "ws",
+                CAMERA_WS_HOST,
+                CAMERA_WS_PORT,
+                CAMERA_WS_PATH);
 }
 
 void captureAndSendFrame() {
@@ -294,7 +304,10 @@ void setup() {
     Serial.printf("Wi-Fi connected: %s\n", WiFi.localIP().toString().c_str());
   }
 
-  useTls = CAMERA_WS_TLS_FINGERPRINT[0] != '\0';
+  useTls = CAMERA_WS_CA_CERT[0] != '\0';
+  if (!useTls && CAMERA_WS_PORT == 443) {
+    Serial.println("Warning: port 443 selected without a CA certificate; using unencrypted WebSocket.");
+  }
   connectWebSocket();
 }
 
