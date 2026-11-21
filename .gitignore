@@ -1,0 +1,8 @@
+node_modules/
+frontend/dist/
+frontend/.env.local
+server/.env
+firmware/RemoteSurveillanceCam/secrets.h
+.pio/
+.vscode/
+npm-debug.log*
